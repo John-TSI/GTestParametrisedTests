@@ -82,7 +82,7 @@ INSTANTIATE_TEST_SUITE_P  // instantiation of parametrised test (inputs supplied
 ///////////////////////////////////////////////////////////////////////////////
 
 
-// ---- parametrised testing with customised log labels (selection sort)----
+// ---- parametrised testing with customised log report labels (selection sort)----
 std::map<std::string, std::vector<int>> inputMap
 {
     {"Empty", {}},
@@ -100,12 +100,12 @@ TEST_P(SelectionSortTestLabelled, InputSizes)  // parametrised test
     std::sort(expected.begin(), expected.end());
     EXPECT_EQ(input, expected);
 }
-INSTANTIATE_TEST_SUITE_P  // instantiation of parametrised test (inputs supplied after test definition)
+INSTANTIATE_TEST_SUITE_P  // instantiation of parametrised test
 (
     SelectionSortParamTest,  // instantiation name
     SelectionSortTestLabelled,  // test suite name
     testing::ValuesIn(inputMap),  // parameter generator (notice 'ValuesIn' not 'Values')
-    // lambda invoked as name/label generator for log output
+    // lambda invoked as name/label generator for log report output
     [](const testing::TestParamInfo<SelectionSortTestLabelled::ParamType>& info){ return info.param.first; }
 );
 
