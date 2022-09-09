@@ -83,6 +83,7 @@ INSTANTIATE_TEST_SUITE_P  // instantiation of parametrised test (inputs supplied
 
 
 // ---- parametrised testing with customised log report labels (selection sort)----
+/* 
 std::map<std::string, std::vector<int>> inputMap
 {
     {"Empty", {}},
@@ -108,6 +109,56 @@ INSTANTIATE_TEST_SUITE_P  // instantiation of parametrised test
     // lambda invoked as name/label generator for log report output
     [](const testing::TestParamInfo<SelectionSortTestLabelled::ParamType>& info){ return info.param.first; }
 );
+ */
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+// ---- parametrised testing with customised log report labels (multiple sort implementations) ----
+std::map< std::string, std::function<void(std::vector<int>&)> >funcMap  // map of function objects for sort algorithms
+{
+    {"SelectionSort", Sorts::SelectionSort},
+    {"BubbleSort", Sorts::BubbleSort}
+};
+std::map<std::string, std::vector<int>> inputMap  // map of input types to be tested
+{
+    {"Empty", {}},
+    {"SingleElement", {4}},
+    {"TypicalSmall", {5,3,1,7,8}},
+    {"ReverseSorted", {5,4,3,2,1}},
+    {"DuplicateElement", {5,3,1,5,8}}
+};
+
+class SortsTestLabelled : public testing::TestWithParam<
+    std::tuple<  // accessed via get<element_index>(tuple)
+        std::pair< const std::string, std::function<void(std::vector<int>&)> >,
+        std::pair< const std::string, std::vector<int> >
+    >
+> {};
+
+INSTANTIATE_TEST_SUITE_P  // instantiation of parametrised test
+(
+    SortsParamTest,  // instantiation name
+    SortsTestLabelled,  // test suite name
+    // parameter generator, creates all possible combinations of passed parameters
+    testing::Combine(testing::ValuesIn(funcMap), testing::ValuesIn(inputMap)), 
+    // lambda invoked as name/label generator for log report output
+    [](const testing::TestParamInfo<SortsTestLabelled::ParamType>& info)
+    { 
+        return std::get<0>(info.param).first + "_" +  // algorithm part of the label
+                std::get<1>(info.param).first;   // input type part of the label
+    }
+);
+TEST_P(SortsTestLabelled, InputSizes)  // parametrised test
+{
+    auto params = GetParam();
+    auto SortFunction = std::get<0>(params).second;  // function object extracted from map value of 1st element of tuple
+    auto input = std::get<1>(params).second, expected{input};  // input type extracted from map value of 2nd element of tuple
+    SortFunction(input);  // invoke the function object (SelectionSort / BubbleSort) with the input type
+    std::sort(expected.begin(), expected.end());
+    EXPECT_EQ(input, expected);
+}
 
 
 // ---- gtest driver code ----
